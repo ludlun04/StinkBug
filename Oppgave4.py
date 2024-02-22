@@ -1,17 +1,11 @@
+import sys
+from datetime import datetime
+
 import numpy as np
 import matplotlib as plt
 import matplotlib.pyplot as plt
 import math
 from PIL import Image
-
-
-# loads the image into array with one channel
-img = np.asarray(Image.open('data/image001.png', mode='r').convert('L'))
-# Copies image data to fx and fy
-
-
-dim = np.shape(img)
-c = 0.1 #0.1 rimelig verdi
 
 # Oppgave 1a
 # Derivert ved x
@@ -44,41 +38,6 @@ def kutt(x, tolerance):
             x[ix][iy] = 1.0
     return x
 
-
-t = 3
-deltaT = 0.1
-
-blurred = np.copy(img).astype('float64')
-
-
-
-for i in range(t):
-    fx = f_discrete_y(blurred)
-    fy = f_discrete_y(blurred)
-    fxx = f_discrete_x(fx)
-    fyy = f_discrete_y(fy)
-
-    blurred += deltaT * (fxx + fyy)
-    print("iteration", i+1)
-
-    if (i%10 == 0):
-        plt.imshow(blurred, cmap='pink')
-        plt.show()
-print("done")
-
-
-
-
-
-img1 = blurred.copy().astype('float64')
-img2 = blurred.copy().astype('float64')
-
-fx = f_discrete_x(img1)
-
-
-
-fy = f_discrete_y(img2)
-
 # Oppgave 1c
 # Lengde av gradienten
 def f_gradlen(dx, dy):
@@ -87,23 +46,25 @@ def f_gradlen(dx, dy):
         diff[iy][ix] = np.sqrt((dx[iy][ix]) ** 2 + (dy[iy][ix]) ** 2)
     return diff
 
-fgradabs = f_gradlen(fx, fy)
-
-maxval = fgradabs.max()
-minval = fgradabs.min()
-fgradabs = np.interp(fgradabs,(minval,maxval),(0,1))
-fgradabs = kutt(fgradabs, c)
-# Oppgave 1 d.
-maxval = fgradabs.max()
-minval = fgradabs.min()
-# fgradabs = np.interp(fgradabs,(minval,maxval),(0,1))
+def g_smoothing(nabla_f, lambdaValue):
+    return 1 / (np.sqrt(1 + (np.square(nabla_f) / (lambdaValue ** 2))))
 
 
 
-# fgradabs = kutt(fgradabs, c)
 
 
 
-imgplot = plt.imshow(fgradabs, cmap='gist_gray')
 
-plt.show()
+
+
+
+
+
+
+
+# DET ER FEIL I KODEN. SYNTAX (ikke syntax som gir bort boller og kaffe kun på onsdager💀💀💀) ERROR.
+def syntax(kaffe, boller):
+    day = datetime.datetime.today().weekday()
+    if (day == "wednesday"):
+        return kaffe + boller
+    sys.exit()
