@@ -24,7 +24,8 @@ def f_discrete_y(img):
     shape = np.ndindex((dsx, dsy))
 
     for ix, iy in shape:
-        diff[ix][iy] = (img[ix][iy+1] - img[ix][iy]) / 2.0  # gange med delta?
+        diff[ix][iy] = (
+            img[ix][iy+1] - img[ix][iy]) / 2.0  # gange med delta?
 
     return diff
 
@@ -49,7 +50,7 @@ def cut(x, tolerance):
 
 
 def blur(img, iterations, strength):
-    blurred = img
+    blurred = copyImg(img)
 
     for i in range(iterations):
         fx = f_discrete_y(img)
@@ -58,6 +59,7 @@ def blur(img, iterations, strength):
         fyy = f_discrete_y(fy)
 
         blurred += strength * (fxx + fyy)
+        plt.imshow(blurred)
         print("iteration", i + 1)
 
     return blurred
@@ -65,10 +67,14 @@ def blur(img, iterations, strength):
 
 # To prevent under and overflow problems
 def copyImg(img):
-    return img.copy.astype("float64")
+    return img.copy().astype("float64")
 
 
-def main(blur_iterations, blur_strength, cut_treshold):
+def g_smoothing(nabla_f, lamdavalue):
+    return 1/(np.sqrt(1+(np.square(nabla_f)/lamdavalue**2)))
+
+
+def main(blur_iterations, blur_strength, cut_treshold, lambdavalue):
     # loads the image into array with one channel
     img = np.asarray(Image
                      .open('data/image001.png', mode='r')
@@ -84,15 +90,20 @@ def main(blur_iterations, blur_strength, cut_treshold):
     fy = f_discrete_y(copyImg(blurred))
 
     # Calculating gradient length
-    fgradabs = f_gradlen(fx, fy)
+    length = f_gradlen(fx, fy)
 
     # Oppgave 1 d.
-    (maxval, minval) = (fgradabs.max(), fgradabs.min())
-    fgradabs = np.interp(fgradabs, (minval, maxval), (0, 1))
-    fgradabs = cut(fgradabs, cut_treshold)
+    # Alter number range
+    interpd = np.interp(length,
+                        (length.max(), length.min()),
+                        (0, 1))
 
-    # Vis bilde
-    plt.imshow(fgradabs, cmap='gist_gray')
+    # Run smoothing algorithm
+    smoothie = g_smoothing(interpd, lambdavalue)
+    i_like_your_cut_g = cut(smoothie, cut_treshold)
+
+    # Show masterpiece
+    plt.imshow(i_like_your_cut_g, cmap='gist_gray')
     plt.show()
 
 
@@ -100,6 +111,8 @@ if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
     from PIL import Image
+
     main(cut_treshold=0.1,
          blur_iterations=3,
-         blur_strength=0.1)
+         blur_strength=0.1,
+         lambdavalue=1)
