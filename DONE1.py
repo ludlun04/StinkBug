@@ -48,23 +48,48 @@ def cut(x, tolerance):
     return x
 
 
-def main():
+def blur(img, iterations, strength):
+    blurred = img
+
+    for i in range(iterations):
+        fx = f_discrete_y(img)
+        fy = f_discrete_y(img)
+        fxx = f_discrete_x(fx)
+        fyy = f_discrete_y(fy)
+
+        blurred += strength * (fxx + fyy)
+        print("iteration", i + 1)
+
+    return blurred
+
+
+# To prevent under and overflow problems
+def copyImg(img):
+    return img.copy.astype("float64")
+
+
+def main(blur_iterations, blur_strength, cut_treshold):
     # loads the image into array with one channel
-    img = np.asarray(Image.open('data/image001.png', mode='r').convert('L'))
+    img = np.asarray(Image
+                     .open('data/image001.png', mode='r')
+                     .convert('L'))
 
-    # Copies image data to fx and fy
-    img1 = img.copy()
-    img2 = img.copy()
+    # Blur image before edge-detection
+    blurred = blur(copyImg(img),
+                   blur_iterations,
+                   blur_strength)
 
-    c = 0.4  # 0.45 rimelig verdi
-    fx = f_discrete_x(img1)
-    fy = f_discrete_y(img2)
+    # Partial diff per direction
+    fx = f_discrete_x(copyImg(blurred))
+    fy = f_discrete_y(copyImg(blurred))
+
+    # Calculating gradient length
     fgradabs = f_gradlen(fx, fy)
 
     # Oppgave 1 d.
     (maxval, minval) = (fgradabs.max(), fgradabs.min())
     fgradabs = np.interp(fgradabs, (minval, maxval), (0, 1))
-    fgradabs = cut(fgradabs, c)
+    fgradabs = cut(fgradabs, cut_treshold)
 
     # Vis bilde
     plt.imshow(fgradabs, cmap='gist_gray')
@@ -75,4 +100,6 @@ if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
     from PIL import Image
-    main()
+    main(cut_treshold=0.1,
+         blur_iterations=3,
+         blur_strength=0.1)
