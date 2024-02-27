@@ -6,84 +6,58 @@ from PIL import Image
 
 
 # loads the image into array with one channel
-img = np.asarray(Image.open('data/simon.png', mode='r').convert('L'))
+img = np.asarray(Image.open('data/image001.png', mode='r').convert('L'))
 # Copies image data to fx and fy
-fx = img.copy()
-fy = img.copy()
-
-imgStink = img.copy()
-
-dim = (375, 500)
-
-# Defines arrays of pixel sizes
-# fx = np.zeros(dim)
-# fy = np.zeros(dim)
-def f(x, y):
-    return 2 * x ** 2 - 3 * x * y + 4 * y ** 2
-
-def f_x(f, x, y, dx):
-    return (f(x + dx, y) - f(x - dx, y)) / (2 * dx)
-
-def f_y(f, x, y, dy):
-    return (f(y + dy, x) - f(y - dy, x)) / (2 * dy)
-
-def f_discrete(img):
-    diffx = img
-    diffy = img
-    diff = np.zeros(np.shape(img))
-
-    for x in range(img.shape[0] - 1):
-        for y in range(img.shape[1] - 1):
-            diffx[x][y] = (img[x + 1][y + 1] - img[x][y]) / 2
-
-    for y in range(img.shape[1] - 1):
-        for x in range(img.shape[0] - 1):
-            diffy[x][y] = (img[x + 1][y + 1] - img[x][y]) / 2
-
-    for x in range(img.shape[0]):
-        for y in range(img.shape[1]):
-            diff[y][y] = abs(np.sqrt((diffx[x][y]) ** 2 + (diffy[x][y]) ** 2))
-
-    return diff
-
-# Finds derivative of f for x
-for iy, ix in np.ndindex(fx.shape):
-    fx[iy][ix] = f_x(f, ix, iy, 1)
-
-# Finds derivative of f for y
-for iy, ix in np.ndindex(fy.shape):
-    fy[iy][ix] = f_y(f, ix, iy, 1)
-
-# Finds the length of the gradient
-fgradabs = np.zeros(dim)
-for iy, ix in np.ndindex(fgradabs.shape):
-    fgradabs[iy][ix] = abs(np.sqrt((fx[iy][ix]) ** 2 + (fy[iy][ix]) ** 2))
-
-# Find max and min
-maxval = fgradabs.max()
-minval = fgradabs.min()
-fgradabs = np.interp(fgradabs,(minval,maxval),(0,1))
-
-# Uncomment to use stinkbug
-# Find max and min
-maxval = imgStink.max()
-minval = imgStink.min()
-
-fgradabs = np.interp(imgStink,(minval,maxval),(0,1))
 
 
-# Function to cut the pixels depending on the pixel stength
-def kutt(x):
-    c = 0.2
+dim = np.shape(img)
+c = 0.10 #0.1 rimelig verdi
+
+# Oppgave 1a
+# Derivert ved x
+def f_discrete_x(img):
+    new = np.zeros_like(img)
+    for ix, iy in np.ndindex((new.shape[0] - 1, new.shape[1] - 1)):
+        if ix == 0 or iy == 0:
+            continue
+        new[ix][iy] = (img[ix+1][iy] - img[ix-1][iy]) / 2.0 #gange med delta?
+
+    return new
+
+# Oppgave 1b
+# Derivert ved y
+def f_discrete_y(img):
+    new = np.zeros_like(img)
+    for ix, iy in np.ndindex((new.shape[0] - 1, new.shape[1] - 1)):
+        if ix == 0 or iy == 0:
+            continue
+        new[ix][iy] = (img[ix][iy+1] - img[ix][iy-1]) / 2.0 #gange med delta?
+
+    return new
+
+# Oppgave 1f
+def kutt(x, tolerance):
     for ix, iy in np.ndindex(x.shape):
-        if x[ix][iy] <= c:
+        if x[ix][iy] <= tolerance:
             x[ix][iy] = 0.0
         else:
             x[ix][iy] = 1.0
     return x
 
-# imgplot = plt.imshow(fgradabs, cmap='Greys')
-fgradabs = kutt(fgradabs)
-imgplot = plt.imshow(fgradabs, cmap='Greys')
+fx = f_discrete_x(img.copy().astype('float32'))
+fy = f_discrete_y(img.copy().astype('float32'))
+
+def f_gradlen(dx, dy):
+    diff = np.zeros(dx.shape)
+    for iy, ix in np.ndindex(dx.shape):
+        diff[iy][ix] = np.sqrt((dx[iy][ix]) ** 2 + (dy[iy][ix]) ** 2)
+    return diff
+
+fgradabs = f_gradlen(fx, fy)
+
+fgradabs = np.interp(fgradabs,(fgradabs.min(),fgradabs.max()),(0,1))
+fgradabs = kutt(fgradabs, c)
+
+imgplot = plt.imshow(fgradabs, cmap='gist_gray')
 
 plt.show()
