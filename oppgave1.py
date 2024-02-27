@@ -11,7 +11,7 @@ img = np.asarray(Image.open('data/image001.png', mode='r').convert('L'))
 
 
 dim = np.shape(img)
-c = 0.20 #0.1 rimelig verdi
+c = 0.10 #0.1 rimelig verdi
 
 # Oppgave 1a
 # Derivert ved x
