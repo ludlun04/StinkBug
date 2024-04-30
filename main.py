@@ -6,7 +6,7 @@ def f_discrete_x(img):
     for ix, iy in np.ndindex((new.shape[0] - 1, new.shape[1] - 1)):
         if ix == 0 or iy == 0:
             continue
-        new[ix][iy] = (img[ix+1][iy] - img[ix-1][iy]) / 2.0 #gange med delta?
+        new[ix][iy] = (img[ix+1][iy] - img[ix-1][iy]) / 2.0
 
     return new
 
@@ -18,7 +18,7 @@ def f_discrete_y(img):
     for ix, iy in np.ndindex((new.shape[0] - 1, new.shape[1] - 1)):
         if ix == 0 or iy == 0:
             continue
-        new[ix][iy] = (img[ix][iy+1] - img[ix][iy-1]) / 2.0 #gange med delta?
+        new[ix][iy] = (img[ix][iy+1] - img[ix][iy-1]) / 2.0
 
     return new
 
@@ -77,6 +77,9 @@ def main(blur_iterations, blur_strength, cut_treshold, lambdavalue):
                    blur_iterations,
                    blur_strength)
 
+    # plt.imshow(blurred, cmap='binary')
+    # plt.show()
+
     # Partial diff per direction
     fx = f_discrete_x(blurred)
     fy = f_discrete_y(blurred)
@@ -90,16 +93,22 @@ def main(blur_iterations, blur_strength, cut_treshold, lambdavalue):
     # Run smoothing algorithm
     smoothie = g_smoothing(length, lambdavalue)
 
-    interpd = np.interp(length,
-                        (length.min(), length.max()),
+    # plt.imshow(smoothie, cmap='binary')
+    # plt.show()
+
+    interpd = np.interp(smoothie,
+                        (smoothie.min(), smoothie.max()),
                         (0, 1))
-    i_like_your_cut_g = cut(smoothie, cut_treshold)
+
+    # plt.imshow(interpd, cmap='binary')
+    # plt.show()
+
+    i_like_your_cut_g = cut(interpd, cut_treshold)
 
 
     # Show masterpiece
     plt.imshow(i_like_your_cut_g, cmap='binary')
     plt.show()
-
 
 if __name__ == "__main__":
     import numpy as np
